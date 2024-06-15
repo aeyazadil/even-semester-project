@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style_degree.css' %}">
+    <title>Degree</title>
+    
+</head>
+<body>
+    <header>
+        <div class="nav-bar">
+            <img src="https://josaa.admissions.nic.in/applicant/Images/jossa_logo.png" id="logo">
+            <div class="text-nav">
+                <h1 id="h1wala">Jossa Data Analysis Portal</h1>
+                <p class="text-navv"></p>
+            </div>
+            <img src="https://josaa.admissions.nic.in/applicant/Images/e-counsellig-logo2020.png" id="logo2">
+        </div>
+        <div class="second-nav">
+            <div class="cont">
+                <a href="{% url 'index' %}" id="kuch"><i class="fa-solid fa-house-chimney"></i><p id="home">Home</p></a>
+            </div>
+        </div>
+    </header>
+    <div class="main-panel">
+        <h4 id="OR">Institutes with the most courses</h4>
+        <div class="panel-1">
+            <div class="roumn">
+                <p id="fie7">Institute Type </p>
+                <p id="fie2">Year</p>    
+            </div>
+            <div class="selections">
+                <form id="selectionForm">
+                    <select id="fiee" name="institute_type">
+                        <option>Indian Institute of Technology</option>
+                        <option>National Institute of Technology</option>
+                        <option>Indian Institute of Information Technology</option>
+                        <option>Government Funded Technical Institutions</option>
+                    </select>
+                    <select id="fie" name="seat_type">
+                        <option>2023</option>
+                        <option>2022</option>
+                        <option>2021</option>
+                        <option>2020</option>
+                        <option>2019</option>
+                        <option>2018</option>
+                        <option>2017</option>
+                        <option>2016</option>
+                    </select>
+                    <button id = "button" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="myChart" width="1" height="0.5"></canvas>
+    <div id="chartDetails" style="display: none;">
+        <h3>Institute and Program Details</h3>
+        <ul id="detailsList"></ul>
+    </div>
+    <div class="second-panel">
+        <details class="custom-details">
+            <summary class="custom-summary">Analysis</summary>
+            <div class="custom-content">
+                •	On average, IITs have the most number of courses followed by NITs and GFTIs. IIITs usually offer 2-3 courses as they are more research focussed colleges. <br>
+                •	There is a declining trend in Dual Degree courses in almost all institutions. IITM reduced Dual Degree courses from 9 to 3 in 2019. Other colleges such as NIT Rourkela, IIIT Allahabad and IIIEST Shibpur also reduced their DD courses over the years. Meanwhile, IIT-Roorkee gradually raised its number of DD courses, from having none in 2016, now it has 4 courses in 2023. <br>
+                •	Newer IITs have increased their no. of courses over the years while the number of courses in older IITs have either decreased or remained the same. For example, IIT-Patna, from not being in the top 10 IITs, it is now on 3rd positon, offering a total of 20 courses.                    
+            </div>
+          </details>
+    </div>
+    <div class="link-center">
+        
+    </div>
+    <div class="last-panel">
+        <div class="last-text">
+            <p></p><p id="p2"></p>
+        </div>
+        <div class="last-panel2">
+            </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            let chart;
+
+            $('#selectionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '/get_degree/',
+                    type: 'POST',
+                    data: {
+                        
+                        'inst_type': $('#fiee').val(),
+                        'year': $('#fie').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        ,
+                    },
+                    success: function (data) {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+
+                        if (chart) {
+                            chart.destroy();
+                        }
+                        const modifiedLabels = data.labels.map(label => splitLabelForChart(label));
+
+                        chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: modifiedLabels,
+                                datasets: data.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                            return data.labels[tooltipItems[0].dataIndex];
+                                        },
+                                        
+                                        
+                                    }
+                                }
+                            },
+                                scales: {
+                                    x:{stacked: true,
+                                        title:{
+                                            display:true,
+                                            text:'Institute',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                        
+                                    },
+                                    y:{stacked: true,
+                                        title:{
+                                            display:true,
+                                            text:'No. of courses',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        function splitLabelForChart(label) {
+                            const words = label.split(' ');
+                            const lineLimit = 20;
+                            const lines = [];
+                          
+                            let line = '';
+                            let currentWordIdx = 0;
+                          
+                            while (currentWordIdx < words.length) {
+                              if (line.length + words[currentWordIdx].length < lineLimit) {
+                                line += `${words[currentWordIdx]} `;
+                                currentWordIdx++;
+                          
+                                if (currentWordIdx === words.length) {
+                                  lines.push(line);
+                                }
+                              } else {
+                                if (line.length) {
+                                  lines.push(line);
+                                  line = '';
+                                }
+                          
+                                if (words[currentWordIdx].length >= lineLimit) {
+                                  lines.push([words.currentWord]);
+                                  currentWordIdx++;
+                                }
+                              }
+                            }
+                          
+                            return lines;
+                          }
+                        function resize() {
+                            chart.resize(1500, 8000);
+                        };
+                        resize();
+
+                       
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

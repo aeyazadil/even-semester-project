@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Rank</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style_ranks.css' %}">
+</head>
+<body>
+    <header>
+        <div class="nav-bar">
+            <div class="text-nav">
+                <h1 id="h1wala">JoSSA Data Analysis Portal</h1>
+                
+            </div>
+            
+        </div>
+        <div class="second-nav">
+            <div class="cont">
+                <a href="{% url 'index' %}" id="kuch"><i class="fa-solid fa-house-chimney"></i><p id="home">Home</p></a>
+            </div>
+        </div>
+    </header>
+    <div class="main-panel">
+        <h4 id="OR">LAST RANK TO GET IITs, NITs, IIITs AND GFTIs</h4>
+        <div class="panel-1">
+            <div class="roumn">
+                <p id="fie7">Institute Type </p>
+                <p id="fie2">Seat Type</p>    
+            </div>
+            <div class="selections">
+                <form id="selectionForm">
+                    <select id="fiee" name="institute_type">
+                        <option>Indian Institute of Technology</option>
+                        <option>National Institute of Technology</option>
+                        <option>Indian Institute of Information Technology</option>
+                        <option>Government Funded Technical Institutions</option>
+                    </select>
+                    <select id="fie" name="seat_type">
+                        <option>OPEN</option>
+                        <option>OPEN (PwD)</option>
+                        <option>EWS</option>
+                        <option>EWS (PwD)</option>
+                        <option>OBC-NCL</option>
+                        <option>OBC-NCL (PwD)</option>
+                        <option>SC</option>
+                        <option>ST</option>
+                        <option>SC (PwD)</option>
+                        <option>ST (PwD)</option>
+                    </select>
+                    <button id = "button" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="myChart" width="2" height="1"></canvas>
+    <div id="chartDetails" style="display: none;">
+        <h3>Institute and Program Details</h3>
+        <ul id="detailsList"></ul>
+    </div>
+
+    <div class="second-panel">
+        <div class="text">
+            <p id="cate">Closing Ranks for Open Seats represent CRL.Closing Ranks for EWS, OBC-NCL, SC and ST Seats represent respective Category Ranks.</p>
+            <p id="cate2"></p>
+        </div>
+        <details class="custom-details">
+            <summary class="custom-summary">Analysis</summary>
+            <div class="custom-content">
+                •	There is an increase in rank for the last seat in IITs, NITs, GFTIs and IIITs over the years  . The last closing rank for an IIT which used to be 10422 in 2016 rises to 24611 for a male candidate in open category.  <br>
+                •	Generally, last rank for Female candidates is higher in all institute type except GFTIs where due to unavailability of Female seats at some courses, Gender-Neutral closing rank is higher than Female. <br>
+                •	Architecture course is the least preferred course in IIT as it is the last where seats get filled up. Northeast NITs and IIITs are the least preferred colleges as they are the colleges where the last seat gets filled up. Preference order for students are NITs, IIITs and then GFTIs <br>
+                •	From 2021 onwards, there is a decrease in last rank of female students to get into IITs and NITs. This can be attributed to the fact that female students started showing more interest in engineering as a career option. It also highlights the success of the Female Supernumerary Quota.
+            </div>
+          </details>
+    </div>
+    <div class="link-center">
+        
+    </div>
+    <div class="last-panel">
+        <div class="last-text">
+        </div>
+        <div class="last-panel2">
+             </div>
+        <button id="scrollToTopBtn"><i class="fa-solid fa-arrow-up"></i></button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            let chart;
+
+            $('#selectionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '/get_data/',
+                    type: 'POST',
+                    data: {
+                        'institute_type': $('#fiee').val(),
+                        'seat_type': $('#fie').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        ,
+                    },
+                    success: function (data) {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+
+                        if (chart) {
+                            chart.destroy();
+                        }
+
+                        chart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.years,
+                                datasets: [
+                                    {
+                                        label: 'Gender-Neutral',
+                                        data: data.gender_neutral_ranks,
+                                        borderColor: 'blue',
+                                        fill: false,
+                                    },
+                                    {
+                                        label: 'Female',
+                                        data: data.female_ranks,
+                                        borderColor: 'red',
+                                        fill: false,
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive:false,
+                                title: {
+                                    display: true,
+                                    text: `Maximum Closing Rank per Year`
+                                },
+                                plugins: {
+                                    tooltip: {
+                                    callbacks: {
+                                        beforeLabel: (tooltipItem,x) =>{
+                                            
+                                            var rank = tooltipItem.datasetIndex === 0 ? data.gender_neutral_ranks[tooltipItem.dataIndex] : data.female_ranks[tooltipItem.dataIndex];
+                                            
+                                            var institute = tooltipItem.datasetIndex === 0 ? data.gn_institutes[tooltipItem.dataIndex] : data.female_institutes[tooltipItem.dataIndex];
+                                            var program = tooltipItem.datasetIndex === 0 ? data.gn_programs[tooltipItem.dataIndex] : data.female_programs[tooltipItem.dataIndex];
+                                            
+                                            return `Institute: ${institute}`; 
+                                           
+                                        },
+                                        label: (tooltipItem,x) =>{
+                                            
+                                            var rank = tooltipItem.datasetIndex === 0 ? data.gender_neutral_ranks[tooltipItem.dataIndex] : data.female_ranks[tooltipItem.dataIndex];
+                                            
+                                            var institute = tooltipItem.datasetIndex === 0 ? data.gn_institutes[tooltipItem.dataIndex] : data.female_institutes[tooltipItem.dataIndex];
+                                            var program = tooltipItem.datasetIndex === 0 ? data.gn_programs[tooltipItem.dataIndex] : data.female_programs[tooltipItem.dataIndex];
+                                            
+                                            return `Program: ${program}`; 
+                                           
+                                        },
+                                        afterLabel: (tooltipItem,x) =>{
+                                            
+                                            var rank = tooltipItem.datasetIndex === 0 ? data.gender_neutral_ranks[tooltipItem.dataIndex] : data.female_ranks[tooltipItem.dataIndex];
+                                            
+                                            var institute = tooltipItem.datasetIndex === 0 ? data.gn_institutes[tooltipItem.dataIndex] : data.female_institutes[tooltipItem.dataIndex];
+                                            var program = tooltipItem.datasetIndex === 0 ? data.gn_programs[tooltipItem.dataIndex] : data.female_programs[tooltipItem.dataIndex];
+                                            
+                                            return `CRL: ${rank}`; 
+                                           
+                                        }
+                                    }
+                                }
+                            }, 
+                                scales: {
+                                    x:{
+                                        title:{
+                                            display:true,
+                                            text:'Year',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                        
+                                    },
+                                    y:{
+                                        title:{
+                                            display:true,
+                                            text:'Maximum Closing Rank',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        function resize() {
+                            chart.resize(1500, 8000);
+                        };
+                        resize();
+
+                       
+                    }
+                });
+            });
+        });
+    </script>   
+</body>
+</html>
+

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Cutoff Analysis</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style1.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+<div class="header">
+    <div class="navbar">
+        <div class="image1"><img src="{% static 'images/logo.png' %}" alt="icon" width="25px"></div>
+        <div class="navtext">Even Semester Project</div>
+        <div class="icon"><i class="fa-solid fa-bars" style="font-size: 21px;"></i></div>
+    </div>
+</div>
+<div class="content">
+    <div class="maincontent">
+        <h1 style="font-size: 51px;">Jossa Data Analysis Portal</h1>
+        <pre>Visualising the JOSAA seat allotment statistics and answering the most asked questions of an average aspirant
+        </pre>
+        <div class="boxes">
+            <div class="box1">
+                <div class="nested-box1">
+                   <div class="heading">Which institutes have the most number of courses over the years?</div>
+                   <div class="text">View all the institutes with the most number of courses from year 2016-2023 with their degrees also highlighted.</div>
+                </div>
+                <div class="nested-box2"><a href="{% url 'degree' %}">Click for Analysis</a><i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+            <div class="box1">
+                <div class="nested-box1">
+                    <div class="heading">What is the last rank to get a seat in IITs, NITS, IIITs and GFTIs over the years?</div>
+                    <div class="text">View the closing rank/category rank of the last seat in IITs, NITS, IIITs and GFTIs from 2016-2023 for a All India/Other State candidate. </div>
+                 </div>
+                 <div class="nested-box2"><a href="{% url 'rank'%}">Click for Analysis <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+            <div class="box1">
+                <div class="nested-box1">
+                    <div class="heading">What is the the last rank to get a seat in your favourite institute?</div>
+                    <div class="text">View the closing rank/category rank of the last seat of all institutes from 2016-2023 for a All India/Other State candidate.</div>
+                 </div>
+                 <div class="nested-box2"><a href="{% url 'institute_rank'%}">Click for Analysis <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+            <div class="box1">
+                <div class="nested-box1">
+                    <div class="heading">What is the the last rank to get your favourite branch</div>
+                    <div class="text" style="height: 75px;">View the closing rank/category rank of the last seat of all the academic programs in IITs, NITs, IIITs and GFTIs from 2016-2023 for a All India/Other State candidate.</div>
+                 </div>
+                 <div class="nested-box2"><a href="{% url 'academic_program' %}">Click for Analysis <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+            <div class="box1">
+                <div class="nested-box1">
+                    <div class="heading">Which are the most popular institutes for a specific branch?</div>
+                    <div class="text" style="height: 75px;">View the most popular institutes of all courses based on closing rank from 2016-2023 of different categories and gender.</div>
+                 </div>
+                 <div class="nested-box2"><a href="{% url 'popular_institute' %}">Click for Analysis <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+            <div class="box1">
+                <div class="nested-box1">
+                    <div class="heading">Which are the most popular branches in a specific institute.</div>
+                    <div class="text" style="height: 75px;">View the most popular branches of an all the institutes based on closing rank from 2016-2023 of different categories and gender.</div>
+                 </div>
+                 <div class="nested-box2"><a href="{% url 'popular_course' %}">Click for Analysis <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+            <div class="box1">
+                <div class="nested-box1">
+                    <div class="heading">How does the HS and OS closing rank differ for courses of different NITS?</div>
+                    <div class="text">View the Home State and Other State closing rank of the courses of all NITs from 2016-2023 of different categories and gender. </div>
+                 </div>
+                 <div class="nested-box2"><a href="{% url 'quota' %}">Click for Analysis <i class="fa-solid fa-arrow-right" style="font-size: 12px;"></i></a></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

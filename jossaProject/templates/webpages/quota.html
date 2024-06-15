@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style_quota.css' %}">
+    <link rel="shortcut icon" type="image/png" href="jossa_logo.png">
+    <title>Quota</title>
+</head>
+<body>
+    <header>
+        <div class="nav-bar">
+            <img src="https://josaa.admissions.nic.in/applicant/Images/jossa_logo.png" id="logo">
+            <div class="text-nav">
+                <h1 id="h1wala">Jossa Data Analysis Portal</h1>
+                <p class="text-navv"></p>
+            </div>
+            <img src="https://josaa.admissions.nic.in/applicant/Images/e-counsellig-logo2020.png" id="logo2">
+        </div>
+        <div class="second-nav">
+            <div class="cont">
+                <a href="{% url 'index' %}"id="kuch"><i class="fa-solid fa-house-chimney"></i><p id="home">Home</p></a>
+            </div>
+        </div>
+    </header>
+    <div class="main-panel">
+        <h4 id="OR">HS and OS closing rank of courses in NITs</h4>
+        <div class="panel-1">
+            <div class="roumn">
+                <p id="fie7">Year</p>
+                <p id="fie2">Seat Type</p>
+                <p id="fie3">Institute Name </p>
+                <p id="fie5">Gender</p>    
+            </div>
+            <div class="selections">
+                <form id="selectionForm">
+                <select name="--Select--" id="fiee">
+                    <option>--Select--</option>
+                    <option>2016</option>
+                    <option>2017</option>
+                    <option>2018</option>
+                    <option>2019</option>
+                    <option>2020</option>
+                    <option>2021</option>
+                    <option>2022</option>
+                    <option>2023</option>
+                </select>
+                <select name="--Select--" id="fie">     
+                </select>
+                <select id="inst-name" >
+                </select>
+                <select id="branch"></select>
+                <button id = "button" type="submit" >Submit</button>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="myChart" width="2" height="1"></canvas>
+    <div id="chartDetails" style="display: none;">
+        <h3>Institute and Program Details</h3>
+        <ul id="detailsList"></ul>
+    </div>
+
+    <div class="second-panel">
+        <div class="text">
+            <p id="cate">Closing Ranks for Open Seats represent CRL.Closing Ranks for EWS, OBC-NCL, SC and ST Seats represent respective Category Ranks.</p>
+        </div>
+        <div class="second-panel">
+               
+                <details class="custom-details">
+                    <summary class="custom-summary">Analysis</summary>
+                    <div class="custom-content">
+                        •	For NITs in famous branches like Computer Science, Electrical, Mechanical, Chemical, and Civil, there is a huge gap in the closing rank of Home state and Other State with the home state candidates having a huge advantage. <br>
+                        •	Few NITs like NIT Warangal, NIT Nagpur, and NIT Bhopal, the difference in closing rank of HS and OS is minimal. In NIT Allahabad, there is a complete reversal in closing rank for HS and OS. The closing rank in HS is less than OS for most of the branches. So, it is more difficult for HS students to enter college despite having a quota. <br>
+                        •	In NITs situated in the north eastern part and Puducherry, the closing rank for HS is very large as compared to that of OS irrespective of branches and category. The students of these states get the maximum advantage of their home state for getting into NITs.
+                                            </div>
+                  </details>
+            </div>
+            <div class="link-center">
+                
+            </div>
+            <div class="last-panel">
+                <div class="last-text">
+                </div>
+            </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            let chart;
+
+            $('#selectionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '/get_quota/',
+                    type: 'POST',
+                    data: {
+                        'year': $('#fiee').val(),
+                        'seat_type': $('#fie').val(),
+                        'institute': $('#inst-name').val(),
+                        'gender': $('#branch').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        ,
+                    },
+                    success: function (data) {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+
+                        if (chart) {
+                            chart.destroy();
+                        }
+                        const modifiedLabels = data.labels.map(label => splitLabelForChart(label));
+
+
+                        chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: modifiedLabels,
+                                datasets: data.datasets
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                            return data.labels[tooltipItems[0].dataIndex];
+                                        },
+                                        
+                                        
+                                    }
+                                }
+                            },
+
+                                scales: {
+                                    x: {
+                                        stacked: false,
+                                        title:{
+                                            display:true,
+                                            text:'Academic Program',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                    },
+                                    y: {
+                                        stacked: false,
+                                        title:{
+                                            display:true,
+                                            text:'Closing Rank',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                    }
+                                }
+                            }
+                        });
+                        function splitLabelForChart(label) {
+                            const words = label.split(' ');
+                            const lineLimit = 18;
+                            const lines = [];
+                          
+                            let line = '';
+                            let currentWordIdx = 0;
+                          
+                            while (currentWordIdx < words.length) {
+                              if (line.length + words[currentWordIdx].length < lineLimit) {
+                                line += `${words[currentWordIdx]} `;
+                                currentWordIdx++;
+                          
+                                if (currentWordIdx === words.length) {
+                                  lines.push(line);
+                                }
+                              } else {
+                                if (line.length) {
+                                  lines.push(line);
+                                  line = '';
+                                }
+                          
+                                if (words[currentWordIdx].length >= lineLimit) {
+                                  lines.push([words.currentWord]);
+                                  currentWordIdx++;
+                                }
+                              }
+                            }
+                          
+                            return lines;
+                          }
+                        function resize() {
+                            chart.resize(1500, 8000);
+                        };
+                        resize();
+
+                       
+                    }
+                });
+            });
+        });
+    </script>
+
+    
+     <script src="{% static 'js/collegelist_quota_nit.js' %}"></script>
+    <script src="{% static 'js/app_quota_nit.js' %}"></script> 
+</body>
+</html>

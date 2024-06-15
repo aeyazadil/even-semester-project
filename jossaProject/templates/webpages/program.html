@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/jax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Program</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style_program.css' %}">
+</head>
+<body>
+    <header>
+        <div class="nav-bar">
+            <img src="https://josaa.admissions.nic.in/applicant/Images/jossa_logo.png" id="logo">
+            <div class="text-nav">
+                <h1 id="h1wala">Jossa Data Analysis Portal</h1>
+                <p class="text-navv"></p>
+            </div>
+            <img src="https://josaa.admissions.nic.in/applicant/Images/e-counsellig-logo2020.png" id="logo2">
+        </div>
+        <div class="second-nav">
+            <div class="cont">
+                <a href="{% url 'index' %}"id="kuch"><i class="fa-solid fa-house-chimney"></i><p id="home">Home</p></a>
+            </div>
+        </div>
+    </header>
+    <div class="main-panel">
+        <h4 id="OR">Last rank to get your preferred branch in IITs, NITs, IIITs and GFTIs</h4>
+        <div class="panel-1">
+            <div class="roumn">
+                <p id="fie7">Seat Type</p>
+                <p id="fie4">Institute Type </p>
+                <p id="fie5">Academic Program</p>    
+            </div>
+            <div class="selections">
+                <form id="selectionForm">
+                <select name="--Select--" id="fiee">
+                    <option>--Select--</option>
+                    
+                    <option>OPEN</option>
+                    <option>OPEN (PwD)</option>
+                         <option>EWS</option>
+                        <option>EWS (PwD)</option>
+                        <option>OBC-NCL</option>
+                        <option>OBC-NCL (PwD)</option>
+                        <option>SC</option>
+                        <option>ST</option>
+                        <option>SC (PwD)</option>
+                        <option>ST (PwD)</option>
+                </select>
+                <select id="inst-type">
+                </select>
+                <select id="inst-name" >
+                </select>
+                <button id = "button" type="submit" >Submit</button>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="myChart" width="2" height="1"></canvas>
+    <div id="chartDetails" style="display: none;">
+        <h3>Institute and Program Details</h3>
+        <ul id="detailsList"></ul>
+    </div>
+        <div class="second-panel">
+            <div class="text">
+                <p id="cate">Closing Ranks for Open Seats represent CRL.Closing Ranks for EWS, OBC-NCL, SC and ST Seats represent respective Category Ranks.</p>
+                <p id="cate2">If the Closing/Opening rank has a suffix 'P', it indicates that the corresponding rank is from Preparatory Rank List.</p>
+            </div>
+            <details class="custom-details">
+                <summary class="custom-summary">Analysis</summary>
+                <div class="custom-content">
+                    •	For any  branch in IITs, irrespective of the category, the final cutoffs have followed a remarkably stable trend. The last ranks for gender-neutral seats increase very slowly, and even though the female-only cutoffs boomed near 2018, they also have stagnated now in 2023. <br>
+                    •	For NITs, the branch cutoffs have been on the up-curve, both for gender-neutral and female-only seats, irrespective of category. This can be due to the fast rise in the number of NITs across India. <br>
+                    •	In IIITs, the gender-neutral ranks are mostly higher than female-only, because many IIITs do not offer female quota. <br>
+                    •	The pattern for GFTIs is really erratic, a lot of factors like number of seats, introduction of new quotas (like EWS, female quota), changes in seat allocation processes, and student preferences, change sharply over the years, thus making future trends difficult to predict.
+                                    </div>
+              </details>
+        </div>
+        <div class="link-center">
+        </div>
+        <div class="last-panel">
+            <div class="last-text">
+            </div>
+                </div>>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            let chart;
+
+            $('#selectionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '/get_program_data/',
+                    type: 'POST',
+                    data: {
+                        
+                        'seat_type': $('#fiee').val(),
+                        'institute_type': $('#inst-type').val(),
+                        'academic_program': $('#inst-name').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        ,
+                    },
+                    success: function (data) {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+
+                        if (chart) {
+                            chart.destroy();
+                        }
+
+                        chart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.years,
+                                datasets: [
+                                    {
+                                        label: 'Gender-Neutral',
+                                        data: data.gender_neutral_ranks,
+                                        borderColor: 'blue',
+                                        fill: false,
+                                    },
+                                    {
+                                        label: 'Female',
+                                        data: data.female_ranks,
+                                        borderColor: 'red',
+                                        fill: false,
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive:false,
+                                title: {
+                                    display: true,
+                                    text: `Maximum Closing Rank per Year`
+                                },
+                                plugins: {
+                                    tooltip: {
+                                    callbacks: {
+                                        beforeLabel: (tooltipItem,x) =>{
+                                            
+                                            var rank = tooltipItem.datasetIndex === 0 ? data.gender_neutral_ranks[tooltipItem.dataIndex] : data.female_ranks[tooltipItem.dataIndex];
+                                            
+                                            var institute = tooltipItem.datasetIndex === 0 ? data.gn_institutes[tooltipItem.dataIndex] : data.female_institutes[tooltipItem.dataIndex];
+                                            var program = tooltipItem.datasetIndex === 0 ? data.gn_programs[tooltipItem.dataIndex] : data.female_programs[tooltipItem.dataIndex];
+                                            
+                                            return `Institute: ${institute}`; 
+                                           
+                                        },
+                                        label: (tooltipItem,x) =>{
+                                            
+                                            var rank = tooltipItem.datasetIndex === 0 ? data.gender_neutral_ranks[tooltipItem.dataIndex] : data.female_ranks[tooltipItem.dataIndex];
+                                            
+                                            var institute = tooltipItem.datasetIndex === 0 ? data.gn_institutes[tooltipItem.dataIndex] : data.female_institutes[tooltipItem.dataIndex];
+                                            var program = tooltipItem.datasetIndex === 0 ? data.gn_programs[tooltipItem.dataIndex] : data.female_programs[tooltipItem.dataIndex];
+                                            
+                                            return `Program: ${program}`; 
+                                           
+                                        },
+                                        afterLabel: (tooltipItem,x) =>{
+                                            
+                                            var rank = tooltipItem.datasetIndex === 0 ? data.gender_neutral_ranks[tooltipItem.dataIndex] : data.female_ranks[tooltipItem.dataIndex];
+                                            
+                                            var institute = tooltipItem.datasetIndex === 0 ? data.gn_institutes[tooltipItem.dataIndex] : data.female_institutes[tooltipItem.dataIndex];
+                                            var program = tooltipItem.datasetIndex === 0 ? data.gn_programs[tooltipItem.dataIndex] : data.female_programs[tooltipItem.dataIndex];
+                                            
+                                            return `CRL: ${rank}`; 
+                                           
+                                        }
+                                    }
+                                }
+                            }, 
+                                scales: {
+                                    x:{
+                                        title:{
+                                            display:true,
+                                            text:'Year',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                        
+                                    },
+                                    y:{
+                                        title:{
+                                            display:true,
+                                            text:'Maximum Closing Rank',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        function resize() {
+                            chart.resize(1500, 8000);
+                        };
+                        resize();
+
+                       
+                    }
+                });
+            });
+        });
+    </script>
+
+    
+    <script src="{% static 'js/collegelist_program.js' %}"></script>
+    <script src="{% static 'js/app_program.js' %}"></script>
+</body>
+</html>

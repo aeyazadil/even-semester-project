@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style_popular_institute.css' %}">
+    <link rel="shortcut icon" type="image/png" href="jossa_logo.png">
+    <title>Popular Institutes</title>
+</head>
+<body>
+    <header>
+        <div class="nav-bar">
+            <img src="https://josaa.admissions.nic.in/applicant/Images/jossa_logo.png" id="logo">
+            <div class="text-nav">
+                <h1 id="h1wala">Jossa Data Analysis Portal</h1>
+                <p class="text-navv"></p>
+            </div>
+            <img src="https://josaa.admissions.nic.in/applicant/Images/e-counsellig-logo2020.png" id="logo2">
+        </div>
+        <div class="second-nav">
+            <div class="cont">
+                <a href="{% url 'index' %}"id="kuch"><i class="fa-solid fa-house-chimney"></i><p id="home">Home</p></a>
+            </div>
+        </div>
+    </header>
+    <div class="main-panel">
+        <h4 id="OR">Most popular institutes of your preffered course</h4>
+        <div class="panel-1">
+            <div class="roumn">
+                <p id="fie7">Year</p>
+                <p id="fie2">Seat Type</p>
+                <p id="fie3">Institute Type </p>
+                <p id="fie5"> Academic Program</p>
+                <p id="fie6">Gender</p>    
+            </div>
+            <div class="selections">
+                <form id="selectionForm">
+                <select name="--Select--" id="fiee">
+                    <option>--Select--</option>
+                    <option>2016</option>
+                    <option>2017</option>
+                    <option>2018</option>
+                    <option>2019</option>
+                    <option>2020</option>
+                    <option>2021</option>
+                    <option>2022</option>
+                    <option>2023</option>
+                </select>
+                <select name="--Select--" id="fie">     
+                </select>
+                <select id="inst-type">
+                </select>
+                <select id="inst-name" >
+                </select>
+                <select id="branch"></select>
+                <button id = "button" type="submit" >Submit</button>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="myChart" width="2" height="1"></canvas>
+    <div id="chartDetails" style="display: none;">
+        <h3>Institute and Program Details</h3>
+        <ul id="detailsList"></ul>
+    </div>
+    <div class="second-panel">
+        <div class="text">
+            <p id="cate">Closing Ranks for Open Seats represent CRL.Closing Ranks for EWS, OBC-NCL, SC and ST Seats represent respective Category Ranks.</p>
+            <p id="cate2">If the Closing/Opening rank has a suffix 'P', it indicates that the corresponding rank is from Preparatory Rank List.</p>
+        </div>
+        <details class="custom-details">
+            <summary class="custom-summary">Analysis</summary>
+            <div class="custom-content">
+                •	In IITs, the general order of popularity is Bombay, Delhi, Madras, Kanpur, Kharagpur, Roorkee for the same course.  For some branches like Civil, this order is not followed and the closing rank for Madras ≈ Kanpur and Kharagpur ≈ Roorkee. <br> 
+                •	IIT Hyderabad has shown a tremendous growth in popularity in recent years and has sometimes beaten IIT Guwahati in some of the courses like MnC and AI while it has been above IIT Guwahati for all the courses for female candidates. <br>
+                •	In NITs, the general order is Trichy, Surathkal, Warangal, Rourkela and Allahabad for the same course. The closing rank for the same course has increased over the years in all NITs due to increase in seats in IITs and NITs. <br>
+                •	In IIITs the general order is Gwalior, Jabalpur, Kota, Trichy, Guwahati, Chittoor, Sonipat, Nagpur, Vadodara and Pune. The closing rank is some of the IIITs are very close to each other. In GFTIs, PEC Chandigarh and BIT Mesra are the most popular among all.
+            </div>
+          </details>
+    </div>
+    <div class="link-center">
+        
+    </div>
+    <div class="last-panel">
+        <div class="last-text">
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            let chart;
+
+            $('#selectionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '/get_popular_institute/',
+                    type: 'POST',
+                    data: {
+                        'year': $('#fiee').val(),
+                        'seat_type': $('#fie').val(),
+                        'institute_type': $('#inst-type').val(),
+                        'academic_program': $('#inst-name').val(),
+                        'gender': $('#branch').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        ,
+                    },
+                    success: function (data) {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+                        const modifiedLabels = data.institutes.map(label => splitLabelForChart(label));
+
+                        if (chart) {
+                            chart.destroy();
+                        }
+
+                        chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: modifiedLabels,
+                                datasets: [{
+                                    label: 'Closing Rank',
+                                    data: data.ranks,
+                                    backgroundColor: ["#ff595e","#ff924c","#ffca3a","#c5ca30","#8ac926","#52a675","#1982c4","#4267ac","#6a4c93","#b5a6c9"]
+                                    ,
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    x: {
+                                        stacked: false,
+                                        title:{
+                                            display:true,
+                                            text:'Closing Rank',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                    },
+                                    y: {
+                                        stacked: false,
+                                        beginAtZero: true,
+                                        title:{
+                                            display:true,
+                                            text:'Institute',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                    }
+                                } ,
+                                  indexAxis: 'y',
+                                  plugins: {
+                                    tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                            return data.institutes[tooltipItems[0].dataIndex];
+                                        },
+                                        label: (tooltipItem,x) =>{
+                                            var rank = data.is_preparatory[tooltipItem.dataIndex]==1 ? data.ranks[tooltipItem.dataIndex]+'P' : data.ranks[tooltipItem.dataIndex];
+                                            return 'Closing Rank: '+ rank;
+
+                                        },
+                                        
+                                    }
+                                }
+                            }
+                            }
+                        });
+                        function splitLabelForChart(label) {
+                            const words = label.split(' ');
+                            const lineLimit = 50;
+                            const lines = [];
+                          
+                            let line = '';
+                            let currentWordIdx = 0;
+                          
+                            while (currentWordIdx < words.length) {
+                              if (line.length + words[currentWordIdx].length < lineLimit) {
+                                line += `${words[currentWordIdx]} `;
+                                currentWordIdx++;
+                          
+                                if (currentWordIdx === words.length) {
+                                  lines.push(line);
+                                }
+                              } else {
+                                if (line.length) {
+                                  lines.push(line);
+                                  line = '';
+                                }
+                          
+                                if (words[currentWordIdx].length >= lineLimit) {
+                                  lines.push([words.currentWord]);
+                                  currentWordIdx++;
+                                }
+                              }
+                            }
+                          
+                            return lines;
+                          }
+                        function resize() {
+                            chart.resize(1500, 8000);
+                        };
+                        resize();
+
+                       
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="{% static 'js/collegelist_popular_institute.js' %}"></script>
+    <script src="{% static 'js/app_popular_institutes.js' %}"></script>
+</body>
+</html>

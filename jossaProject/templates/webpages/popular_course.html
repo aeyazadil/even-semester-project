@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style_popular_course.css' %}">
+    <link rel="shortcut icon" type="image/png" href="jossa_logo.png">
+    <title>Popular Courses</title>
+</head>
+<body>
+    <header>
+        <div class="nav-bar">
+            <img src="https://josaa.admissions.nic.in/applicant/Images/jossa_logo.png" id="logo">
+            <div class="text-nav">
+                <h1 id="h1wala">Jossa Data Analysis Portal</h1>
+                <p class="text-navv"></p>
+            </div>
+            <img src="https://josaa.admissions.nic.in/applicant/Images/e-counsellig-logo2020.png" id="logo2">
+        </div>
+        <div class="second-nav">
+            <div class="cont">
+                <a href="{% url 'index' %}"id="kuch"><i class="fa-solid fa-house-chimney"></i><p id="home">Home</p></a>
+            </div>
+        </div>
+    </header>
+    <div class="main-panel">
+        <h4 id="OR">Most popular courses of your preferred institute</h4>
+        <div class="panel-1">
+            <div class="roumn">
+                <p id="fie7">Year</p>
+                <p id="fie2">Seat Type</p>
+                <p id="fie3">Institute Type </p>
+                <p id="fie5">Institute Name</p>
+                <p id="fie6">Gender</p>    
+            </div>
+            <div class="selections">
+                <form id="selectionForm">
+                <select name="--Select--" id="fiee">
+                    <option>--Select--</option>
+                    <option>2016</option>
+                    <option>2017</option>
+                    <option>2018</option>
+                    <option>2019</option>
+                    <option>2020</option>
+                    <option>2021</option>
+                    <option>2022</option>
+                    <option>2023</option>
+                </select>
+                <select name="--Select--" id="fie">     
+                </select>
+                <select id="inst-type">
+                </select>
+                <select id="inst-name" >
+                </select>
+                <select id="branch"></select>
+                <button id = "button" type="submit" >Submit</button>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="myChart" width="2" height="1"></canvas>
+    <div id="chartDetails" style="display: none;">
+        <h3>Institute and Program Details</h3>
+        <ul id="detailsList"></ul>
+    </div>
+
+    <div class="second-panel">
+        <div class="text">
+            <p id="cate">Closing Ranks for Open Seats represent CRL.Closing Ranks for EWS, OBC-NCL, SC and ST Seats represent respective Category Ranks.</p>
+            <p id="cate2">If the Closing/Opening rank has a suffix 'P', it indicates that the corresponding rank is from Preparatory Rank List.</p>
+        </div>
+        <details class="custom-details">
+            <summary class="custom-summary">Analysis</summary>
+            <div class="custom-content">
+                •	CSE is a top branch in every IIT and the general order is CSE, Maths & Computing, ECE(where it is present) EE, mechanical, chemical, Eng. physics, civil, and at last biotechnology. Some exceptions to the order are there like Eng. Physics is popular in Bombay and Madras. In IITs where Maths & Computing is a BS course it is less popular than compared to institutes where it is a BTech course. <br>
+                •	The general order for branches in NITs is CSE, then IT, then ECE, then EE, then mechanical, then chemical, then civil, then metallurgy, then biotechnology and mining at last. In some NITs like NIT Warangal, metallurgy is more popular than civil while in NIT Calicut, newer branches like Eng. Physics are more popular than traditional branches like mechanical and civil in case of categories like General, EWS, and OBC. <br>
+                •	In IIITs, the general order is CS/IT courses, then ECE related courses, and then core courses if available. Courses in GFTIs follow the same order as NITs. <br>
+                •	Generally, for the same course 4-year degree is much preferred than 5 year degree for the same discipline and BTech courses are generally more popular than BS course. <br>
+                •	In most of the institutes, it has been observed that for SC and ST, traditional branches like mechanical and civil are more popular as compared to other categories and newer branches like Eng. Physics, Aerospace and other new branches are extremely unpopular.
+                            </div>
+          </details>
+    </div>
+    <div class="link-center">
+        
+    </div>
+    <div class="last-panel">
+        <div class="last-text">
+        </div>
+        <div class="last-panel2">
+            </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            let chart;
+
+            $('#selectionForm').on('submit', function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: '/get_popular_course/',
+                    type: 'POST',
+                    data: {
+                        'year': $('#fiee').val(),
+                        'seat_type': $('#fie').val(),
+                        'institute_type': $('#inst-type').val(),
+                        'institute': $('#inst-name').val(),
+                        'gender': $('#branch').val(),
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        ,
+                    },
+                    success: function (data) {
+                        const ctx = document.getElementById('myChart').getContext('2d');
+
+                        if (chart) {
+                            chart.destroy();
+                        }
+                        const modifiedLabels = data.programs.map(label => splitLabelForChart(label));
+
+                        chart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: modifiedLabels,
+                                datasets: [{
+                                    label: 'Closing Rank',
+                                    data: data.ranks,
+                                    backgroundColor: ["#ff595e","#ff924c","#ffca3a","#c5ca30","#8ac926","#52a675","#1982c4","#4267ac","#6a4c93","#b5a6c9"]
+                                    ,
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    x: {
+                                        stacked: false,
+                                        title:{
+                                            display:true,
+                                            text:'Closing Rank',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                    },
+                                    y: {
+                                        stacked: false,
+                                        beginAtZero: true,
+                                        title:{
+                                            display:true,
+                                            text:'Academic Program',
+                                            font: {
+                                                size: 20,
+                                            }
+                                        },
+                                    }
+                                },
+                                  indexAxis: 'y',
+                                  plugins: {
+                                    tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                        return data.programs[tooltipItems[0].dataIndex];
+                                    },
+                                        beforeLabel: (tooltipItem,x) =>{
+                                            
+                                            var institute = data.institutes[tooltipItem.dataIndex];
+                                            
+                                            return `Institute: ${institute}`; 
+                                        },label: (tooltipItem,x) =>{
+                                            var rank = data.is_preparatory[tooltipItem.dataIndex]==1 ? data.ranks[tooltipItem.dataIndex]+'P' : data.ranks[tooltipItem.dataIndex];
+                                            return 'Closing Rank: '+ rank;
+
+                                        }
+                                        
+                                    }
+                                }
+                            }
+                            }
+                        });
+                        function splitLabelForChart(label) {
+                            const words = label.split(' ');
+                            const lineLimit = 60;
+                            const lines = [];
+                          
+                            let line = '';
+                            let currentWordIdx = 0;
+                          
+                            while (currentWordIdx < words.length) {
+                              if (line.length + words[currentWordIdx].length < lineLimit) {
+                                line += `${words[currentWordIdx]} `;
+                                currentWordIdx++;
+                          
+                                if (currentWordIdx === words.length) {
+                                  lines.push(line);
+                                }
+                              } else {
+                                if (line.length) {
+                                  lines.push(line);
+                                  line = '';
+                                }
+                          
+                                if (words[currentWordIdx].length >= lineLimit) {
+                                  lines.push([words.currentWord]);
+                                  currentWordIdx++;
+                                }
+                              }
+                            }
+                          
+                            return lines;
+                          }
+                        function resize() {
+                            chart.resize(1500, 8000);
+                        };
+                        resize();
+
+                       
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="{% static 'js/collegelist_popular_course.js' %}"></script>
+    <script src="{% static 'js/app_popular_courses.js' %}"></script>
+</body>
+</html>
