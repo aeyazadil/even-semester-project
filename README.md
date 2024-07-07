@@ -1,3 +1,6 @@
+## Directly access the website
+Link - https://aeyaz123.pythonanywhere.com/
+
 ## To run the website locally:
 1. Install django and python
 2. cd jossaProject
